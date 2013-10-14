@@ -1,4 +1,5 @@
-#coding=UTF-8
+#!/usr/bin/python
+import argparse
 import codecs
 import reportlab.rl_config
 from reportlab.pdfbase import pdfmetrics
@@ -7,7 +8,7 @@ from reportlab.pdfgen import canvas
 from reportlab.pdfgen.canvas import Canvas
 from reportlab.lib.units import cm, mm
 from reportlab.lib import pagesizes
-import sys
+import sys, os
 
 reportlab.rl_config.TTFSearchpath = './'
 pdfmetrics.registerFont(TTFont('DejaVuSans-Bold','DejaVuSans-Bold.ttf'))
@@ -50,27 +51,22 @@ def createPDF(pdf, texts):
         pdf.showPage()
 
 if __name__ == "__main__":
-    if len(sys.argv) < 2:
-        print "usage: kufr.py filename [filenames...]"
-    else:
-        for arg in sys.argv[1:]:
-            try:
-                # read the file
-                texts = readTexts(arg)
-                filename = arg + ".pdf"
-                print "Creating file '"+filename+"'...",
-            
-                try:
-                    pdf = canvas.Canvas(filename)
-                    createPDF(pdf, texts)
-                    pdf.save()
-                    print "done."
-                except Exception, e:
-                    print "failed."
-                    print e
-
-            except IOError, e:
-                print "Can not read file '" + arg + "'"
-                print e
-            
+    parser = argparse.ArgumentParser(
+            description="""Create PDF document containing words from given txt file. 
+            Each line will be printed on one page.""")
+    parser.add_argument("source", type = str, 
+            help="""source txt file, it should contain words or short phrases 
+            on separate lines""")
+    args = parser.parse_args()
+    texts = readTexts(args.source)
+    root, ext = os.path.splitext(args.source)
+    pdfPath = "%s.pdf" % root
+    try:
+        pdf = canvas.Canvas(pdfPath)
+        createPDF(pdf, texts)
+        pdf.save()
+        print("Done.")
+    except Exception, e:
+        print("Failed.")
+        print(e)
 
